@@ -1,0 +1,584 @@
+Sub checktabulation() '检查填写表
+startrow1 = Sheet13.[b1048576].End(3).Row
+For i = 2 To startrow1
+    printing = Sheet13.Range("A" & i)
+    strcode = Sheet13.Range("B" & i)
+    colorcode = Sheet13.Range("C" & i)
+    colorarr = Split(Sheet13.Range("C" & i), "/")
+    Size = Sheet13.Range("D" & i)
+    Sizearr = Split(Sheet13.Range("D" & i), "/")
+    '印花检查
+    startrow2 = Sheet9.[b1048576].End(3).Row
+    If printing = "" Then
+        streror = "印花不可填写为空，如款式无印花，请填写‘M’/Printing cannot be left blank. If the style has no printing, please fill in 'M'"
+        MsgBox (streror)
+        Sheet13.Range("A" & i).Activate
+        Exit Sub
+    Else
+        printmup = Split(printing, "+")
+        For k = 0 To UBound(printmup)
+            For l = 2 To startrow2
+                If printmup(k) = Sheet9.Range("B" & l) Then
+                    GoTo skip1
+                End If
+            Next l
+        streror = printing & " 的组成印花 " & printmup(k) & " 在印花库中不存在/ " & printing & " 's Composition Printing " & printmup(k) & " Does not exist in the Print library"
+        MsgBox (streror)
+        Sheet13.Range("A" & i).Activate
+        Exit Sub
+skip1:
+        Next k
+    End If
+    '款式检查
+    startrow3 = Sheet10.[a1048576].End(3).Row
+    If strcode = "" Then
+        streror = "款式不可填写为空/Clothing cannot be left blank."
+        MsgBox (streror)
+        Sheet13.Range("B" & i).Activate
+        Exit Sub
+    Else
+        strmup = Split(strcode, "+")
+        For k = 0 To UBound(strmup)
+            For l = 2 To startrow3
+                If strmup(k) = Sheet10.Range("B" & l) Then
+                    GoTo skip3
+                End If
+            Next l
+        streror = strcode & "的组成款式 " & strmup(k) & " 在款式库中不存在/ " & strcode & " 's Composition Clothing " & strmup(k) & " Does not exist in the Clothing library"
+        MsgBox (streror)
+        Sheet13.Range("B" & i).Activate
+        Exit Sub
+skip3:
+        Next k
+    End If
+    '颜色检查及组合项个数检查
+    startrow4 = Sheet8.[a1048576].End(3).Row
+    If colorcode = "" Then
+        streror = "颜色不可填写为空/Color cannot be left blank."
+        MsgBox (streror)
+        Sheet13.Range("C" & i).Activate
+        Exit Sub
+    Else
+        For Z = 0 To UBound(colorarr)
+            colormup = Split(colorarr(Z), "+")
+            For k = 0 To UBound(colormup)
+                For l = 2 To startrow4
+                    If colormup(k) = Sheet8.Range("B" & l) Then
+                        GoTo Skip5
+                    End If
+                Next l
+            streror = colorarr(Z) & " 的组成颜色 " & colormup(k) & " 在颜色库中不存在/ " & colorarr(Z) & " 's Composition Color " & colormup(k) & " Does not exist in the Color library"
+            MsgBox (streror)
+            Sheet13.Range("C" & i).Activate
+            Exit Sub
+Skip5:
+            Next k
+            If Not UBound(printmup) = UBound(strmup) Or Not UBound(printmup) = UBound(colormup) Or Not UBound(strmup) = UBound(colormup) Then
+                streror = printing & "," & strcode & "," & colorarr(Z) & "的组合项个数不一致/" & printing & "," & strcode & "," & colorarr(Z) & "'s number of combination items is inconsistent"
+                MsgBox (streror)
+                Sheet13.Range("B" & i).Activate
+                Exit Sub
+            End If
+        Next Z
+    End If
+    '尺码检查
+    If Size = "" Then
+        streror = "尺码不可填写为空/Size cannot be left blank."
+        MsgBox (streror)
+        Sheet13.Range("D" & i).Activate
+        Exit Sub
+    End If
+    '颜色精细化检查
+    For k = 0 To UBound(strmup)
+        For l = 2 To startrow3
+            If strmup(k) = Sheet10.Range("B" & l) Then
+                clo = Sheet10.Range("C" & l)
+                colarr = Split(clo, "/")
+                For Z = 0 To UBound(colorarr)
+                    colormup = Split(colorarr(Z), "+")
+                    For x = 0 To UBound(colarr)
+                        If colormup(k) = colarr(x) Then
+                            GoTo Skip7
+                        End If
+                    Next x
+                    streror = "颜色" & colormup(k) & "在款式" & strmup(k) & "中不存在/Color " & colormup(k) & " In Clothing " & strmup(k) & " Does not exist"
+                    MsgBox (streror)
+                    Sheet13.Range("C" & i).Activate
+                    Exit Sub
+Skip7:
+                Next Z
+            End If
+            Next l
+        Next k
+    '尺码精细化检查
+    For k = 0 To UBound(strmup)
+        For l = 2 To startrow3
+            If strmup(k) = Sheet10.Range("B" & l) Then
+            For Z = 0 To UBound(Sizearr)
+                siz = Sheet10.Range("E" & l)
+                sizarr = Split(siz, "/")
+                For x = 0 To UBound(sizarr)
+                    If Sizearr(Z) = sizarr(x) Then
+                        GoTo Skip9
+                    End If
+                Next x
+                streror = "尺码 " & Sizearr(Z) & " 在款式 " & strmup(k) & " 中不存在/Size " & Sizearr(Z) & " In Clothing " & strmup(k) & " Does not exist"
+                MsgBox (streror)
+                Sheet13.Range("D" & i).Activate
+                Exit Sub
+Skip9:
+            Next Z
+            End If
+        Next l
+    Next k
+    
+Next i
+streror = "检查无误/Check Right"
+MsgBox (streror)
+End Sub
+
+Sub creatsku() '生成商品编码
+startrowR = 2
+startrow1 = Sheet13.[e1048576].End(3).Row
+If startrow1 > 1 Then Sheet13.Range("e2:e" & startrow1).ClearContents
+startrow2 = Sheet13.[b1048576].End(3).Row
+For i = 2 To startrow2
+
+printing = Sheet13.Range("A" & i)
+printmup = Split(printing, "+")
+printcode = ""
+startrowfors = Sheet9.[b1048576].End(3).Row
+If UBound(printmup) = 0 Then
+    printcode = printing
+Else
+    For Z = 0 To UBound(printmup)
+        For a = 2 To startrowfors
+            If printmup(Z) = Sheet9.Range("B" & a) Then
+                printcode = printcode & Sheet9.Range("A" & a)
+            End If
+        Next a
+    Next Z
+End If
+
+strcode = Sheet13.Range("B" & i)
+strmup = Split(strcode, "+")
+strcomcode = ""
+startrowfors = Sheet10.[b1048576].End(3).Row
+If UBound(strmup) = 0 Then
+    strcomcode = strcode
+Else
+    For Z = 0 To UBound(strmup)
+        For a = 2 To startrowfors
+            If strmup(Z) = Sheet10.Range("B" & a) Then
+                strcomcode = strcomcode & Sheet10.Range("A" & a)
+            End If
+        Next a
+    Next Z
+End If
+
+colorarr = Split(Sheet13.Range("C" & i), "/")
+Sizearr = Split(Sheet13.Range("D" & i), "/")
+startrow3 = Sheet8.[a1048576].End(3).Row
+For l = 0 To UBound(colorarr)
+    colormup = Split(colorarr(l), "+")
+    colorcode = ""
+    If UBound(colormup) = 0 Then
+        colorcode = colorarr(l)
+    Else
+        For Z = 0 To UBound(colormup)
+            For j = 2 To startrow3
+                If colormup(Z) = Sheet8.Range("B" & j) Then
+                    colorcode = colorcode & Sheet8.Range("A" & j)
+                End If
+            Next j
+        Next Z
+    End If
+    For m = 0 To UBound(Sizearr)
+        code = printcode & "-" & strcomcode & "-" & colorcode & "-" & Sizearr(m)
+        Sheet13.Range("E" & startrowR) = code
+        startrowR = startrowR + 1
+    Next m
+Next l
+Next i
+End Sub
+
+Sub creatMasterProduct() '生成bigseller商品编码表
+startrowR = 2
+startrow1 = Sheet11.[a1048576].End(3).Row
+If startrow1 > 1 Then Sheet11.Range("a1:o" & startrow1).ClearContents
+flag = Sheet13.Range("G2")
+If flag = "Chinese" Then
+    Sheet11.Range("A1") = "*SKU编号(必填)"
+    Sheet11.Range("B1") = "*名称(必填)"
+    Sheet11.Range("C1") = "分类"
+    Sheet11.Range("D1") = "GTIN"
+    Sheet11.Range("E1") = "仓库"
+    Sheet11.Range("F1") = "库存"
+    Sheet11.Range("G1") = "成本价"
+    Sheet11.Range("H1") = "参考成本价"
+    Sheet11.Range("I1") = "参考售价"
+    Sheet11.Range("J1") = "商品起售日期"
+    Sheet11.Range("K1") = "重量(g)"
+    Sheet11.Range("L1") = "长(cm)"
+    Sheet11.Range("M1") = "宽(cm)"
+    Sheet11.Range("N1") = "高(cm)"
+    Sheet11.Range("O1") = "Image URL"
+    Sheet11.Range("P1") = "商品备注"
+ElseIf flag = "English" Then
+    Sheet11.Range("A1") = "*SKU Name(Required)"
+    Sheet11.Range("B1") = "*Title(Required)"
+    Sheet11.Range("C1") = "Category"
+    Sheet11.Range("D1") = "GTIN"
+    Sheet11.Range("E1") = "Warehouse"
+    Sheet11.Range("F1") = "Stock"
+    Sheet11.Range("G1") = "Cost Price"
+    Sheet11.Range("H1") = "Reference Cost Price"
+    Sheet11.Range("I1") = "Reference Price"
+    Sheet11.Range("J1") = "Date of Sale"
+    Sheet11.Range("K1") = "Weight(g)"
+    Sheet11.Range("L1") = "Length(cm)"
+    Sheet11.Range("M1") = "Width(cm)"
+    Sheet11.Range("N1") = "Height(cm)"
+    Sheet11.Range("O1") = "Image URL"
+    Sheet11.Range("P1") = "Merchant SKU Note"
+End If
+
+'建立印花、款式、颜色对应字典
+endsheet9 = Sheet9.[b1048576].End(3).Row
+endsheet10 = Sheet10.[b1048576].End(3).Row
+yhsrr = Sheet9.Range("b1:D" & endsheet9)
+kssrr = Sheet10.Range("b1:F" & endsheet10)
+Set dicyh = CreateObject("scripting.dictionary")
+Set dicks = CreateObject("scripting.dictionary")
+Set dicys = CreateObject("scripting.dictionary")
+For a = 2 To UBound(yhsrr)
+    yhcode = yhsrr(a, 1)
+    yhname = yhsrr(a, 3)
+    dicyh(yhcode) = yhname
+Next a
+dicyh("M") = "纯色"
+For b = 2 To UBound(kssrr)
+    kscode = kssrr(b, 1)
+    ksname = kssrr(b, 5)
+    dicks(kscode) = ksname
+    yscodelist = Split(kssrr(b, 2), "/")
+    ysnamelist = Split(kssrr(b, 3), "/")
+    For C = 0 To UBound(yscodelist)
+        yskeyname = kscode & yscodelist(C)
+        dicys(yskeyname) = ysnamelist(C)
+        If kscode = "DK" Then
+        End If
+    Next C
+Next b
+
+startrow2 = Sheet13.[b1048576].End(3).Row
+For i = 2 To startrow2
+printing = Sheet13.Range("A" & i)
+strcode = Sheet13.Range("B" & i)
+colorarr = Split(Sheet13.Range("C" & i), "/")
+Sizearr = Split(Sheet13.Range("D" & i), "/")
+startrow4 = Sheet9.[a1048576].End(3).Row
+
+printmup = Split(printing, "+")
+For Z = 0 To UBound(printmup)
+    If Not printmup(Z) = "M" Then
+        Sheet11.Range("A" & startrowR) = printmup(Z)
+        Sheet11.Range("B" & startrowR) = dicyh(printmup(Z))
+        Sheet11.Range("C" & startrowR) = "Print"
+        Sheet11.Range("E" & startrowR) = "越南仓"
+        startrowR = startrowR + 1
+    End If
+Next Z
+
+startrow5 = Sheet10.[b1048576].End(3).Row
+strmup = Split(strcode, "+")
+For x = 0 To UBound(strmup)
+    For l = 0 To UBound(colorarr)
+        colormup = Split(colorarr(l), "+")
+        For m = 0 To UBound(Sizearr)
+            code = "M-" + strmup(x) + "-" + colormup(x) + "-" + Sizearr(m)
+            ksname = dicks(strmup(x))
+            ysname = dicys(strmup(x) & colormup(x))
+            codeksname = "纯色/" & ksname & "/" & ysname & "/" & Sizearr(m)
+            Sheet11.Range("A" & startrowR) = code
+            Sheet11.Range("B" & startrowR) = codeksname
+            Sheet11.Range("C" & startrowR) = "Clothes"
+            Sheet11.Range("E" & startrowR) = "越南仓"
+            startrowR = startrowR + 1
+        Next m
+    Next l
+Next x
+Next i
+Sheet11.Activate
+Sheet11.UsedRange.RemoveDuplicates Columns:=1, Header:=xlYes
+Sheet11.Range("A1").Select
+End Sub
+
+Sub creatCombinedProduct() '生成bigseller组合装商品编码表
+
+'建立印花、款式、颜色对应字典
+endsheet9 = Sheet9.[b1048576].End(3).Row
+endsheet10 = Sheet10.[b1048576].End(3).Row
+yhsrr = Sheet9.Range("b1:D" & endsheet9)
+kssrr = Sheet10.Range("b1:F" & endsheet10)
+Set dicyh = CreateObject("scripting.dictionary")
+Set dicks = CreateObject("scripting.dictionary")
+Set dicys = CreateObject("scripting.dictionary")
+For a = 2 To UBound(yhsrr)
+    yhcode = yhsrr(a, 1)
+    yhname = yhsrr(a, 3)
+    dicyh(yhcode) = yhname
+Next a
+dicyh("M") = "纯色"
+For b = 2 To UBound(kssrr)
+    kscode = kssrr(b, 1)
+    ksname = kssrr(b, 5)
+    dicks(kscode) = ksname
+    yscodelist = Split(kssrr(b, 2), "/")
+    ysnamelist = Split(kssrr(b, 3), "/")
+    For C = 0 To UBound(yscodelist)
+        yskeyname = kscode & yscodelist(C)
+        dicys(yskeyname) = ysnamelist(C)
+        If kscode = "DK" Then
+        End If
+    Next C
+Next b
+
+startrowR = 2
+startrow1 = Sheet12.[a1048576].End(3).Row
+If startrow1 > 1 Then Sheet12.Range("a1:bo" & startrow1).ClearContents
+flag = Sheet13.Range("G2")
+If flag = "Chinese" Then
+    Sheet12.Range("A1") = "*SKU编号"
+    Sheet12.Range("B1") = "*名称"
+    Sheet12.Range("C1") = "仓库"
+    Sheet12.Range("D1") = "分类"
+    Sheet12.Range("E1") = "参考成本价"
+    Sheet12.Range("F1") = "参考售价"
+    Sheet12.Range("G1") = "Image URL"
+    Sheet12.Range("H1") = "商品备注"
+    Sheet12.Range("I1") = "*单品SKU1"
+    Sheet12.Range("J1") = "*SKU1数量"
+    Sheet12.Range("K1") = "SKU1成本价分摊比"
+    Sheet12.Range("L1") = "单品SKU2"
+    Sheet12.Range("M1") = "SKU2数量"
+    Sheet12.Range("N1") = "SKU2成本价分摊比"
+    Sheet12.Range("O1") = "单品SKU3"
+    Sheet12.Range("P1") = "SKU3数量"
+    Sheet12.Range("Q1") = "SKU3成本价分摊比"
+    Sheet12.Range("R1") = "单品SKU4"
+    Sheet12.Range("S1") = "SKU4数量"
+    Sheet12.Range("T1") = "SKU4成本价分摊比"
+    Sheet12.Range("U1") = "单品SKU5"
+    Sheet12.Range("V1") = "SKU5数量"
+    Sheet12.Range("W1") = "SKU5成本价分摊比"
+    Sheet12.Range("X1") = "单品SKU6"
+    Sheet12.Range("Y1") = "SKU6数量"
+    Sheet12.Range("Z1") = "SKU6成本价分摊比"
+    Sheet12.Range("AA1") = "单品SKU7"
+    Sheet12.Range("AB1") = "SKU7数量"
+    Sheet12.Range("AC1") = "SKU7成本价分摊比"
+    Sheet12.Range("AD1") = "单品SKU8"
+    Sheet12.Range("AE1") = "SKU8数量"
+    Sheet12.Range("AF1") = "SKU8成本价分摊比"
+    Sheet12.Range("AG1") = "单品SKU9"
+    Sheet12.Range("AH1") = "SKU9数量"
+    Sheet12.Range("AI1") = "SKU9成本价分摊比"
+    Sheet12.Range("AJ1") = "单品SKU10"
+    Sheet12.Range("AK1") = "SKU10数量"
+    Sheet12.Range("AL1") = "SKU10成本价分摊比"
+    Sheet12.Range("AM1") = "单品SKU11"
+    Sheet12.Range("AN1") = "SKU11数量"
+    Sheet12.Range("AO1") = "SKU11成本价分摊比"
+    Sheet12.Range("AP1") = "单品SKU12"
+    Sheet12.Range("AQ1") = "SKU12数量"
+    Sheet12.Range("AR1") = "SKU12成本价分摊比"
+    Sheet12.Range("AS1") = "单品SKU13"
+    Sheet12.Range("AT1") = "SKU13数量"
+    Sheet12.Range("AU1") = "SKU13成本价分摊比"
+    Sheet12.Range("AV1") = "单品SKU14"
+    Sheet12.Range("AW1") = "SKU14数量"
+    Sheet12.Range("AX1") = "SKU14成本价分摊比"
+    Sheet12.Range("AY1") = "单品SKU15"
+    Sheet12.Range("AZ1") = "SKU15数量"
+    Sheet12.Range("BA1") = "SKU15成本价分摊比"
+    Sheet12.Range("BB1") = "单品SKU16"
+    Sheet12.Range("BC1") = "SKU16数量"
+    Sheet12.Range("BD1") = "SKU16成本价分摊比"
+    Sheet12.Range("BE1") = "单品SKU17"
+    Sheet12.Range("BF1") = "SKU17数量"
+    Sheet12.Range("BG1") = "SKU17成本价分摊比"
+    Sheet12.Range("BH1") = "单品SKU18"
+    Sheet12.Range("BI1") = "SKU18数量"
+    Sheet12.Range("BJ1") = "SKU18成本价分摊比"
+    Sheet12.Range("BK1") = "单品SKU19"
+    Sheet12.Range("BL1") = "SKU19数量"
+    Sheet12.Range("BM1") = "SKU19成本价分摊比"
+    Sheet12.Range("BN1") = "单品SKU20"
+    Sheet12.Range("BO1") = "SKU20数量"
+    Sheet12.Range("BP1") = "SKU20成本价分摊比"
+ElseIf flag = "English" Then
+    Sheet12.Range("A1") = "*SKU Name"
+    Sheet12.Range("B1") = "*Title"
+    Sheet12.Range("C1") = "Warehouse"
+    Sheet12.Range("D1") = "Category"
+    Sheet12.Range("E1") = "Reference Cost Price"
+    Sheet12.Range("F1") = "Reference Price"
+    Sheet12.Range("G1") = "Image URL"
+    Sheet12.Range("H1") = "Merchant SKU Note"
+    Sheet12.Range("I1") = "*Single SKU 1"
+    Sheet12.Range("J1") = "*SKU 1 Qty"
+    Sheet12.Range("K1") = "Cost price allocation ratio for SKU1"
+    Sheet12.Range("L1") = "Single SKU 2"
+    Sheet12.Range("M1") = "SKU 2 Qty"
+    Sheet12.Range("N1") = "Cost price allocation ratio for SKU2"
+    Sheet12.Range("O1") = "Single SKU 3"
+    Sheet12.Range("P1") = "SKU 3 Qty"
+    Sheet12.Range("Q1") = "Cost price allocation ratio for SKU3"
+    Sheet12.Range("R1") = "Single SKU 4"
+    Sheet12.Range("S1") = "SKU 4 Qty"
+    Sheet12.Range("T1") = "Cost price allocation ratio for SKU4"
+    Sheet12.Range("U1") = "Single SKU 5"
+    Sheet12.Range("V1") = "SKU 5 Qty"
+    Sheet12.Range("W1") = "Cost price allocation ratio for SKU5"
+    Sheet12.Range("X1") = "Single SKU 6"
+    Sheet12.Range("Y1") = "SKU 6 Qty"
+    Sheet12.Range("Z1") = "Cost price allocation ratio for SKU6"
+    Sheet12.Range("AA1") = "Single SKU 7"
+    Sheet12.Range("AB1") = "SKU 7 Qty"
+    Sheet12.Range("AC1") = "Cost price allocation ratio for SKU7"
+    Sheet12.Range("AD1") = "Single SKU 8"
+    Sheet12.Range("AE1") = "SKU 8 Qty"
+    Sheet12.Range("AF1") = "Cost price allocation ratio for SKU8"
+    Sheet12.Range("AG1") = "Single SKU 9"
+    Sheet12.Range("AH1") = "SKU 9 Qty"
+    Sheet12.Range("AI1") = "Cost price allocation ratio for SKU9"
+    Sheet12.Range("AJ1") = "Single SKU 10"
+    Sheet12.Range("AK1") = "SKU 10 Qty"
+    Sheet12.Range("AL1") = "Cost price allocation ratio for SKU10"
+    Sheet12.Range("AM1") = "Single SKU 11"
+    Sheet12.Range("AN1") = "SKU 11 Qty"
+    Sheet12.Range("AO1") = "Cost price allocation ratio for SKU11"
+    Sheet12.Range("AP1") = "Single SKU 12"
+    Sheet12.Range("AQ1") = "SKU 12 Qty"
+    Sheet12.Range("AR1") = "Cost price allocation ratio for SKU12"
+    Sheet12.Range("AS1") = "Single SKU 13"
+    Sheet12.Range("AT1") = "SKU 13 Qty"
+    Sheet12.Range("AU1") = "Cost price allocation ratio for SKU13"
+    Sheet12.Range("AV1") = "Single SKU 14"
+    Sheet12.Range("AW1") = "SKU 14 Qty"
+    Sheet12.Range("AX1") = "Cost price allocation ratio for SKU14"
+    Sheet12.Range("AY1") = "Single SKU 15"
+    Sheet12.Range("AZ1") = "SKU 15 Qty"
+    Sheet12.Range("BA1") = "Cost price allocation ratio for SKU15"
+    Sheet12.Range("BB1") = "Single SKU 16"
+    Sheet12.Range("BC1") = "SKU 16 Qty"
+    Sheet12.Range("BD1") = "Cost price allocation ratio for SKU16"
+    Sheet12.Range("BE1") = "Single SKU 17"
+    Sheet12.Range("BF1") = "SKU 17 Qty"
+    Sheet12.Range("BG1") = "Cost price allocation ratio for SKU17"
+    Sheet12.Range("BH1") = "Single SKU 18"
+    Sheet12.Range("BI1") = "SKU 18 Qty"
+    Sheet12.Range("BJ1") = "Cost price allocation ratio for SKU18"
+    Sheet12.Range("BK1") = "Single SKU 19"
+    Sheet12.Range("BL1") = "SKU 19 Qty"
+    Sheet12.Range("BM1") = "Cost price allocation ratio for SKU19"
+    Sheet12.Range("BN1") = "Single SKU 20"
+    Sheet12.Range("BO1") = "SKU 20 Qty"
+    Sheet12.Range("BP1") = "Cost price allocation ratio for SKU20"
+End If
+startrow2 = Sheet13.[b1048576].End(3).Row
+For i = 2 To startrow2
+printing = Sheet13.Range("A" & i)
+printcode = ""
+printmup = Split(printing, "+")
+startrowfors = Sheet9.[b1048576].End(3).Row
+If UBound(printmup) = 0 Then
+    printcode = printing
+Else
+    For Z = 0 To UBound(printmup)
+        For a = 2 To startrowfors
+            If printmup(Z) = Sheet9.Range("B" & a) Then
+                printcode = printcode & Sheet9.Range("A" & a)
+            End If
+        Next a
+    Next Z
+End If
+
+strcode = Sheet13.Range("B" & i)
+strmup = Split(strcode, "+")
+strcomcode = ""
+startrowfors = Sheet10.[b1048576].End(3).Row
+If UBound(strmup) = 0 Then
+    strcomcode = strcode
+Else
+    For Z = 0 To UBound(strmup)
+        For a = 2 To startrowfors
+            If strmup(Z) = Sheet10.Range("B" & a) Then
+                strcomcode = strcomcode & Sheet10.Range("A" & a)
+            End If
+        Next a
+    Next Z
+End If
+
+colorarr = Split(Sheet13.Range("C" & i), "/")
+Sizearr = Split(Sheet13.Range("D" & i), "/")
+startrow3 = Sheet8.[a1048576].End(3).Row
+For l = 0 To UBound(colorarr)
+    colormup = Split(colorarr(l), "+")
+    colorcode = ""
+    If UBound(colormup) = 0 Then
+        colorcode = colorarr(l)
+    Else
+        For Z = 0 To UBound(colormup)
+            For j = 2 To startrow3
+                If colormup(Z) = Sheet8.Range("B" & j) Then
+                    colorcode = colorcode & Sheet8.Range("A" & j)
+                End If
+            Next j
+        Next Z
+    End If
+    For m = 0 To UBound(Sizearr)
+        startrowRl = 9
+        code = printcode & "-" & strcomcode & "-" & colorcode & "-" & Sizearr(m)
+        stcode = ""
+        For y = 0 To UBound(strmup)
+            If y = 0 Then
+                stcode = printmup(y) & "-" & strmup(y) & "-" & colormup(y) & "-" & Sizearr(m)
+                stcodename = dicyh(printmup(y)) & "/" & dicks(strmup(y)) & "/" & dicys(strmup(y) & colormup(y)) & "/" & Sizearr(m)
+            Else
+                stcode = stcode & "/" & printmup(y) & "-" & strmup(y) & "-" & colormup(y) & "-" & Sizearr(m)
+                stcodename = stcodename & "&" & dicyh(printmup(y)) & "/" & dicks(strmup(y)) & "/" & dicys(strmup(y) & colormup(y)) & "/" & Sizearr(m)
+            End If
+        Next y
+        
+        If Not UBound(strmup) = 0 Or Not printing = "M" Then
+            For y = 0 To UBound(strmup)
+                Sheet12.Range("A" & startrowR) = code
+                Sheet12.Range("B" & startrowR) = stcodename
+                '仓库填写越南仓
+                Sheet12.Range("C" & startrowR) = "越南仓"
+                '设置分类为款式代号，弃用！越南仓的都不填归到未分类里，本来填写成款式代号，但是系统里没有预先设置这个商品sku分类就会归到未分类里
+                'Sheet12.Range("D" & startrowR) = strcomcode
+                Sheet12.Cells(startrowR, startrowRl) = "M-" & strmup(y) & "-" & colormup(y) & "-" & Sizearr(m)
+                Sheet12.Cells(startrowR, startrowRl + 1) = "1"
+                startrowRl = startrowRl + 3
+                If Not printing = "M" Then
+                    If Not printmup(y) = "M" Then
+                        Sheet12.Cells(startrowR, startrowRl) = printmup(y)
+                        Sheet12.Cells(startrowR, startrowRl + 1) = "1"
+                        startrowRl = startrowRl + 3
+                    End If
+                End If
+            Next y
+        startrowR = startrowR + 1
+        End If
+    Next m
+Next l
+Next i
+Sheet12.Activate
+Sheet12.UsedRange.RemoveDuplicates Columns:=1, Header:=xlYes
+Sheet12.Range("A1").Select
+End Sub
+
+
