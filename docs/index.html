@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>print-clothes-sku-generator · 印花服饰编码生成器 DSH Skill</title>
+<meta name="description" content="让 DeepSeek Harness Agent 掌握印花服饰 SKU 编码生成器（Excel VBA / BigSeller）的源码结构、编码规则与扩展方法。">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+      },
+    },
+  },
+};
+</script>
+<style>
+  .gradient-text {
+    background: linear-gradient(120deg, #38bdf8, #818cf8, #e879f9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(30,41,59,.6), rgba(15,23,42,.9));
+    border: 1px solid rgba(148,163,184,.15);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(56,189,248,.4);
+    box-shadow: 0 12px 40px -12px rgba(56,189,248,.25);
+  }
+  code.inline {
+    @apply px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 text-sm font-mono;
+  }
+  ::selection { background: rgba(56,189,248,.35); }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-200 antialiased">
+
+<!-- ===== 导航 ===== -->
+<nav class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/70 border-b border-slate-800/60">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-sm font-bold text-white">S</div>
+      <span class="font-semibold text-slate-100">print-clothes-sku-generator</span>
+    </div>
+    <a href="https://github.com/yccok/print-clothes-sku-generator"
+       class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-sm text-slate-200 hover:border-sky-400/50 hover:text-sky-300 transition">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.468-2.38 1.235-3.22-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.3 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.652.242 2.873.118 3.176.77.84 1.234 1.91 1.234 3.22 0 4.61-2.807 5.625-5.48 5.92.43.372.814 1.103.814 2.223 0 1.605-.015 2.898-.015 3.293 0 .32.216.695.825.576C20.565 21.795 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<!-- ===== Hero ===== -->
+<header class="relative overflow-hidden">
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,.15),transparent_55%)] pointer-events-none"></div>
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(129,140,248,.12),transparent_50%)] pointer-events-none"></div>
+  <div class="max-w-6xl mx-auto px-6 pt-20 pb-16 text-center relative">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-sky-400/30 bg-sky-400/10 text-sky-300 text-xs mb-6">
+      <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+      DeepSeek Harness Skill · 自包含 · 可移植
+    </div>
+    <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-slate-50">
+      <span class="gradient-text">印花服饰 SKU</span> 编码生成器
+    </h1>
+    <p class="mt-5 max-w-2xl mx-auto text-lg text-slate-400">
+      让 Agent 掌握 <span class="text-slate-200 font-mono text-base">Excel VBA / BigSeller</span> 生成器的
+      源码结构、编码规则与扩展方法 —— 直接读码、改码、查 bug、按模板扩展新国家仓库。
+    </p>
+    <div class="mt-8 flex flex-wrap justify-center gap-4">
+      <a href="#install" class="px-6 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-medium hover:opacity-90 transition shadow-lg shadow-sky-500/25">安装说明</a>
+      <a href="#spec" class="px-6 py-3 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-200 hover:border-sky-400/50 transition">SKU 规范速览</a>
+    </div>
+    <div class="mt-10 flex flex-wrap justify-center gap-2 text-xs text-slate-500 font-mono">
+      <span class="px-2.5 py-1 rounded border border-slate-800 bg-slate-900/50">DSH 0.1.x</span>
+      <span class="px-2.5 py-1 rounded border border-slate-800 bg-slate-900/50">VBA</span>
+      <span class="px-2.5 py-1 rounded border border-slate-800 bg-slate-900/50">BigSeller</span>
+      <span class="px-2.5 py-1 rounded border border-slate-800 bg-slate-900/50">越南仓 / 泰国仓</span>
+      <span class="px-2.5 py-1 rounded border border-slate-800 bg-slate-900/50">MIT License</span>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 功能卡片 ===== -->
+<section class="max-w-6xl mx-auto px-6 py-14">
+  <h2 class="text-2xl font-semibold text-slate-100 mb-8">它能做什么</h2>
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="card rounded-2xl p-6">
+      <div class="text-3xl mb-3">📦</div>
+      <h3 class="font-semibold text-slate-100 mb-2">源码随包</h3>
+      <p class="text-sm text-slate-400">越南男装、泰国男装两份正式单仓源码打包在 <code class="inline">assets/</code>，Agent 随时可读取分析。</p>
+    </div>
+    <div class="card rounded-2xl p-6">
+      <div class="text-3xl mb-3">🧩</div>
+      <h3 class="font-semibold text-slate-100 mb-2">编码规范</h3>
+      <p class="text-sm text-slate-400">单件 / 组合 SKU 格式、纯色代号（越南 T/M、泰国 TT/TM）、缩写规则，全部固化在手册中。</p>
+    </div>
+    <div class="card rounded-2xl p-6">
+      <div class="text-3xl mb-3">🌏</div>
+      <h3 class="font-semibold text-slate-100 mb-2">多仓库扩展</h3>
+      <p class="text-sm text-slate-400">8 个参数化差异点 + 模板法，按规律快速构建新国家仓库（童装版同构）。</p>
+    </div>
+    <div class="card rounded-2xl p-6">
+      <div class="text-3xl mb-3">🪤</div>
+      <h3 class="font-semibold text-slate-100 mb-2">已知坑位</h3>
+      <p class="text-sm text-slate-400">VBA Dictionary 崩溃、业务代号与代码硬编码差异、清空范围不足等备忘，避免重复踩坑。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SKU 规范 ===== -->
+<section id="spec" class="max-w-6xl mx-auto px-6 py-14">
+  <h2 class="text-2xl font-semibold text-slate-100 mb-8">SKU 编码规范</h2>
+  <div class="grid lg:grid-cols-2 gap-5">
+    <div class="card rounded-2xl p-6">
+      <h3 class="font-semibold text-slate-100 mb-3">单件 SKU</h3>
+      <p class="text-sm text-slate-400 mb-4">格式：<code class="inline">印花代号-款式代号-颜色代号-尺码</code>（全称代号）</p>
+      <pre class="rounded-xl bg-slate-950 border border-slate-800 p-4 text-sm overflow-x-auto"><code class="text-cyan-300">M-LWDX-WH-160     童装纯色-螺纹短袖-白色-160
+S008-LWDX-WH-160  两颗心K印花-螺纹短袖-白色-160</code></pre>
+      <div class="mt-4 text-xs text-slate-500">纯色代号按仓库区分：越南 <code class="inline">T</code>/<code class="inline">M</code>，泰国 <code class="inline">TT</code>/<code class="inline">TM</code></div>
+    </div>
+    <div class="card rounded-2xl p-6">
+      <h3 class="font-semibold text-slate-100 mb-3">组合 SKU</h3>
+      <p class="text-sm text-slate-400 mb-4">各维度缩写连写（无分隔符），尺码唯一。例：纯色 T + 印花 S008 两件组合</p>
+      <pre class="rounded-xl bg-slate-950 border border-slate-800 p-4 text-sm overflow-x-auto"><code class="text-fuchsia-300">TS8-LWDLWD-WHWH-160
+│ │  │     │  │
+T+S8  LWD+LWD  WH+WH  160（单尺码）
+纯色   螺纹短袖×2  白色×2</code></pre>
+      <div class="mt-4 text-xs text-slate-500">缩写来自各库 A 列短编码（S008→S8、LWDX→LWD）</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 多仓库差异 ===== -->
+<section class="max-w-6xl mx-auto px-6 py-14">
+  <h2 class="text-2xl font-semibold text-slate-100 mb-8">多仓库差异点（8 个参数）</h2>
+  <div class="card rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-slate-400 border-b border-slate-800">
+            <th class="px-5 py-3 font-medium">参数点</th>
+            <th class="px-5 py-3 font-medium">🇻🇳 越南仓（男装）</th>
+            <th class="px-5 py-3 font-medium">🇹🇭 泰国仓（男装）</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60">
+          <tr class="hover:bg-slate-900/40"><td class="px-5 py-3 text-slate-400">纯色代号</td><td class="px-5 py-3 font-mono">M</td><td class="px-5 py-3 font-mono">TM</td></tr>
+          <tr class="hover:bg-slate-900/40"><td class="px-5 py-3 text-slate-400">SKU 前缀</td><td class="px-5 py-3 font-mono">M-</td><td class="px-5 py-3 font-mono">TM-</td></tr>
+          <tr class="hover:bg-slate-900/40"><td class="px-5 py-3 text-slate-400">仓库名</td><td class="px-5 py-3 font-mono">越南仓</td><td class="px-5 py-3 font-mono">泰国仓</td></tr>
+          <tr class="hover:bg-slate-900/40"><td class="px-5 py-3 text-slate-400">印花分类</td><td class="px-5 py-3 font-mono">Print</td><td class="px-5 py-3 font-mono">泰国Print</td></tr>
+          <tr class="hover:bg-slate-900/40"><td class="px-5 py-3 text-slate-400">衣服分类</td><td class="px-5 py-3 font-mono">Clothes</td><td class="px-5 py-3 font-mono">泰国Clothes</td></tr>
+          <tr class="hover:bg-slate-900/40"><td class="px-5 py-3 text-slate-400">组合装分类</td><td class="px-5 py-3 text-slate-500">留空（归未分类）</td><td class="px-5 py-3 font-mono">泰国SKU</td></tr>
+          <tr class="hover:bg-slate-900/40"><td class="px-5 py-3 text-slate-400">字典硬编码</td><td class="px-5 py-3 font-mono">dicyh("M")="纯色"</td><td class="px-5 py-3 font-mono">dicyh("TM")="纯色"</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="px-5 py-4 bg-slate-900/40 border-t border-slate-800 text-sm text-slate-400">
+      扩展新国家仓 = 复制模板 → 全局替换这 8 个参数点 → 完成。童装版同构：男装代号把 <code class="inline">M</code> 换成 <code class="inline">T</code>。
+    </div>
+  </div>
+</section>
+
+<!-- ===== 目录结构 ===== -->
+<section class="max-w-6xl mx-auto px-6 py-14">
+  <h2 class="text-2xl font-semibold text-slate-100 mb-8">仓库结构</h2>
+  <div class="card rounded-2xl p-6">
+    <pre class="rounded-xl bg-slate-950 border border-slate-800 p-5 text-sm overflow-x-auto"><code class="text-slate-300">print-clothes-sku-generator/
+├─ SKILL.md                        <span class="text-slate-500">← 操作手册（DSH 技能入口）</span>
+├─ assets/
+│  ├─ 越南男装编码生成器源码.txt
+│  └─ 泰国男装编码生成器源码.txt
+├─ docs/
+│  └─ index.html                   <span class="text-slate-500">← 本介绍页</span>
+├─ README.md
+├─ LICENSE
+└─ .gitignore</code></pre>
+  </div>
+</section>
+
+<!-- ===== 安装 ===== -->
+<section id="install" class="max-w-6xl mx-auto px-6 py-14">
+  <h2 class="text-2xl font-semibold text-slate-100 mb-8">安装（3 步）</h2>
+  <div class="space-y-4">
+    <div class="card rounded-2xl p-5 flex gap-4">
+      <div class="flex-none w-8 h-8 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 flex items-center justify-center font-semibold">1</div>
+      <div><p class="font-medium text-slate-100">下载仓库</p><p class="text-sm text-slate-400 mt-1">GitHub 下载 zip 或 <code class="inline">git clone</code>（注意：zip 解压后去掉 <code class="inline">-main</code> 后缀）</p></div>
+    </div>
+    <div class="card rounded-2xl p-5 flex gap-4">
+      <div class="flex-none w-8 h-8 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 flex items-center justify-center font-semibold">2</div>
+      <div><p class="font-medium text-slate-100">放入技能目录</p><p class="text-sm text-slate-400 mt-1">整个 <code class="inline">print-clothes-sku-generator</code> 文件夹放到 <code class="inline">~/.dsh/skills/</code>（用户全局）或 <code class="inline">&lt;项目根&gt;/.dsh/skills/</code>（项目级）</p></div>
+    </div>
+    <div class="card rounded-2xl p-5 flex gap-4">
+      <div class="flex-none w-8 h-8 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 flex items-center justify-center font-semibold">3</div>
+      <div><p class="font-medium text-slate-100">重启验证</p><p class="text-sm text-slate-400 mt-1">重启 DSH，新会话技能目录出现 <code class="inline">print-clothes-sku-generator</code> 即成功；提及"编码生成器""SKU 生成"等关键词会自动加载</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="border-t border-slate-800/60 mt-8">
+  <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="text-sm text-slate-500">
+      <span class="text-slate-300 font-medium">print-clothes-sku-generator</span> · DeepSeek Harness Skill · MIT License
+    </div>
+    <div class="flex items-center gap-5 text-sm">
+      <a href="https://github.com/yccok/print-clothes-sku-generator" class="text-slate-400 hover:text-sky-300 transition">GitHub</a>
+      <a href="#top" class="text-slate-400 hover:text-sky-300 transition">回到顶部 ↑</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
